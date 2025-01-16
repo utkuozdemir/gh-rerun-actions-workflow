@@ -59,9 +59,6 @@ func run() error {
 	ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGTERM, os.Interrupt)
 	defer cancel()
 
-	ticker := time.NewTicker(interval)
-	defer ticker.Stop()
-
 	reruns := 0
 
 	for {
@@ -97,7 +94,7 @@ func run() error {
 		select {
 		case <-ctx.Done():
 			return nil
-		case <-ticker.C:
+		case <-time.After(interval):
 		}
 	}
 }
