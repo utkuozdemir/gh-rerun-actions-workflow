@@ -34,6 +34,7 @@ gh-rerun-actions-workflow -repo "utkuozdemir/gh-rerun-actions-workflow" -run-id 
 - `-run-id`: Workflow run ID.
 - `-max-reruns`: Max retries (default: 5).
 - `-interval`: Check interval (default: 1 minute).
+- `-api-call-timeout`: Timeout for GitHub API calls (default: 5 seconds).
 
 ## License
 

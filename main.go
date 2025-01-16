@@ -31,16 +31,18 @@ func run() error {
 	).WithAuthToken(os.Getenv("GITHUB_TOKEN"))
 
 	var (
-		repoFlag      string
-		runIDFlag     int64
-		maxRerunsFlag int
-		interval      time.Duration
+		repoFlag       string
+		runIDFlag      int64
+		maxRerunsFlag  int
+		interval       time.Duration
+		apiCallTimeout time.Duration
 	)
 
 	flag.StringVar(&repoFlag, "repo", "", "owner/repository to work on")
 	flag.Int64Var(&runIDFlag, "run-id", 0, "workflow run ID to check")
 	flag.IntVar(&maxRerunsFlag, "max-reruns", 5, "maximum number of reruns")
 	flag.DurationVar(&interval, "interval", 1*time.Minute, "interval between checks")
+	flag.DurationVar(&apiCallTimeout, "api-call-timeout", 5*time.Second, "timeout for API calls")
 
 	flag.Parse()
 
@@ -62,7 +64,7 @@ func run() error {
 	reruns := 0
 
 	for {
-		success, failure, err := checkWorkflowRun(ctx, client, logger, owner, repo, runIDFlag)
+		success, failure, err := checkWorkflowRun(ctx, apiCallTimeout, client, logger, owner, repo, runIDFlag)
 		if err != nil {
 			return err
 		}
@@ -82,7 +84,7 @@ func run() error {
 
 			logger.Info("workflow run failed, rerunning")
 
-			if _, err = client.Actions.RerunFailedJobsByID(ctx, owner, repo, runIDFlag); err != nil {
+			if err = rerun(ctx, apiCallTimeout, client, owner, repo, runIDFlag); err != nil {
 				return err
 			}
 
@@ -99,7 +101,19 @@ func run() error {
 	}
 }
 
-func checkWorkflowRun(ctx context.Context, client *github.Client, logger *slog.Logger, owner, repo string, runID int64) (success, failure bool, err error) {
+func rerun(ctx context.Context, timeout time.Duration, client *github.Client, owner, repo string, runID int64) error {
+	ctx, cancel := context.WithTimeout(ctx, timeout)
+	defer cancel()
+
+	_, err := client.Actions.RerunFailedJobsByID(ctx, owner, repo, runID)
+
+	return err
+}
+
+func checkWorkflowRun(ctx context.Context, timeout time.Duration, client *github.Client, logger *slog.Logger, owner, repo string, runID int64) (success, failure bool, err error) {
+	ctx, cancel := context.WithTimeout(ctx, timeout)
+	defer cancel()
+
 	workflowRun, _, err := client.Actions.GetWorkflowRunByID(ctx, owner, repo, runID)
 	if err != nil {
 		return false, false, err
