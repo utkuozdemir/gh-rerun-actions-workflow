@@ -17,13 +17,15 @@ go install github.com/utkuozdemir/gh-rerun-actions-workflow@latest
 ## Usage
 
 ```bash
+export GITHUB_TOKEN="<your-github-token>"
 gh-rerun-actions-workflow -repo "<owner>/<repository>" -run-id <run-id> -max-reruns <limit> -interval <duration>
 ```
 
 ### Example
 
 ```bash
-gh-rerun-actions-workflow -repo "octocat/hello-world" -run-id 12345678 -max-reruns 3 -interval 30s
+export GITHUB_TOKEN=ghp_mySuperSecretToken
+gh-rerun-actions-workflow -repo "utkuozdemir/gh-rerun-actions-workflow" -run-id 12345678 -max-reruns 3 -interval 30s
 ```
 
 ## Options
