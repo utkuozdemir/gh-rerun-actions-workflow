@@ -126,8 +126,10 @@ func checkWorkflowRun(ctx context.Context, timeout time.Duration, client *github
 		switch workflowRun.GetConclusion() {
 		case "success":
 			return true, false, nil
-		case "failure":
+		case "failure", "cancelled":
 			return false, true, nil
+		default:
+			logger.Info("workflow conclusion", "conclusion", workflowRun.GetConclusion())
 		}
 	}
 
